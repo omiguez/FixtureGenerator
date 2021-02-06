@@ -1,7 +1,9 @@
-﻿using System;
+﻿using FixtureGenerator.SampleClasses;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace FixtureGenerator
 {
@@ -10,6 +12,7 @@ namespace FixtureGenerator
         private Random rand = new Random(32); // seed
         public void DoStuff()
         {
+            ////GenerateFixture(typeof(ClassWithCollections));
             GenerateFixture(typeof(SampleModelClass));
         }
 
@@ -22,64 +25,124 @@ namespace FixtureGenerator
             Console.WriteLine(GenerateRandomString(30));
             foreach (PropertyInfo member in fixtureType.GetProperties())
             {
-                SetValue(member, newFixture);
+                Type memberType = member.PropertyType;
+                object generatedValue = GenerateValue(memberType);                            
+                member.SetValue(newFixture, generatedValue);
             }
 
             return newFixture;
         }
 
-        private void SetValue(PropertyInfo member, object newFixture)
+        private object GenerateValue(Type memberType)
         {
-            Type memberType = member.PropertyType;
             Console.WriteLine(memberType);
 
             if (memberType.IsPrimitive)
             {
                 if (memberType == typeof(int))
                 {
-                    member.SetValue(newFixture, GenerateRandomInt());
+                    return GenerateRandomInt();
                 }
                 else if (memberType == typeof(bool))
                 {
-                    member.SetValue(newFixture, GenerateRandomBool());
+                    return GenerateRandomBool();
                 }
                 else if (memberType == typeof(double))
                 {
-                    member.SetValue(newFixture, GenerateRandomDouble(2));
+                    return GenerateRandomDouble(2);
                 }
                 else if (memberType == typeof(float))
                 {
-                    member.SetValue(newFixture, (float)GenerateRandomDouble(2));
+                    return (float)GenerateRandomDouble(2);
                 }
             }
             else if (memberType == typeof(string))
             {
-                member.SetValue(newFixture, GenerateRandomString(10));
+                return GenerateRandomString(10);
             }
             else if (memberType.IsEnum)
             {
                 Array enumValues = memberType.GetEnumValues();
-                member.SetValue(newFixture, enumValues.GetValue(rand.Next(enumValues.Length)));
+                return enumValues.GetValue(rand.Next(enumValues.Length));
             }
             else if (memberType.IsClass)
             {
-                member.SetValue(newFixture, GenerateFixture(memberType)); // TODO: 
-                Console.WriteLine($"Class: {memberType.Name}");
+                if (DoesItImplementInterface(memberType, typeof(IList)))
+                {
+                    Console.WriteLine($"Collection");
+                    return SetListValues(memberType);
+                }
+                else if (DoesItImplementInterface(memberType, typeof(IDictionary)))
+                {
+                    return SetDictionaryValues(memberType);
+                }
+                else
+                {
+                    return GenerateFixture(memberType);
+                    Console.WriteLine($"Class: {memberType.Name}");
+                    return null;
+                }
             }
             else if (memberType.IsValueType)
             {
                 if (memberType == typeof(decimal))
                 {
-                    member.SetValue(newFixture, (decimal)GenerateRandomDouble(2));
+                    return (decimal)GenerateRandomDouble(2);
                 }
+                return null;
             }
             else
             {
                 Console.WriteLine("Something else");
             }
+
+            return null;
         }
 
-        public string GenerateRandomString(int length)
+        private object SetListValues(Type memberType)
+        {            
+            Type[] typeArguments = memberType.GetGenericArguments();
+            if (typeArguments.Length == 1)
+            {
+                IList newCollection = (IList)Activator.CreateInstance(memberType);
+                for (int i = 0; i < 5; i++)
+                {
+                    newCollection.Add(GenerateValue(typeArguments[0]));
+                }
+                return newCollection;
+            }
+            else
+            {
+                throw new Exception($"Member of type {memberType} is a list but more or less than 1 type argument was found");
+            }            
+        }
+
+        private object SetDictionaryValues(Type memberType)
+        {
+            Type[] typeArguments = memberType.GetGenericArguments();
+            if (typeArguments.Length == 2)
+            {
+                IDictionary newCollection = (IDictionary)Activator.CreateInstance(memberType);
+                for (int i = 0; i < 5; i++)
+                {
+                    var key = GenerateValue(typeArguments[0]);
+                    var value = GenerateValue(typeArguments[1]);
+                    newCollection.Add(key, value);
+                }
+                return newCollection;
+            }
+            else
+            {
+                throw new Exception($"Member of type {memberType} is a dictionary but more or less than 2 type argument was found");
+            }
+        }
+
+        private bool DoesItImplementInterface(Type @type, Type @interface)
+        {
+            return @type.GetInterfaces().Contains(@interface);
+        }
+
+        private string GenerateRandomString(int length)
         {
             char[] generated = new char[length];
             string possibleChars = "abcdefghijklmnñopqrstuvwxyz";
