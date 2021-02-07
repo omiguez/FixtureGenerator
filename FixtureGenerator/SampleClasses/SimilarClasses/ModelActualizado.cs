@@ -9,5 +9,9 @@ namespace FixtureGenerator.SampleClasses.SimilarClasses
         public int? Id { get; set; }
 
         public ChildActualizado Child { get; set; }
+
+        public List<ChildActualizado> ChildList { get; set; }
+
+        public Dictionary<string, ChildActualizado> ChildDictionary { get; set; }
     }
 }

@@ -24,5 +24,15 @@ namespace FixtureGenerator.CommonTreeGeneration
             MemberName = memberName;
             Children = new List<MemberTypeData>();
         }
+
+        public MemberTypeData Clone()
+        {
+            return new MemberTypeData(this.MemberType, this.MemberName)
+            {
+                Value = this.Value,
+                KeyType = this.KeyType,
+                ItemType = this.ItemType
+            };
+        }
     }
 }
