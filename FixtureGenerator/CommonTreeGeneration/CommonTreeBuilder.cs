@@ -18,6 +18,14 @@ namespace FixtureGenerator.CommonTreeGeneration
             return;
         }
 
+        public List<MemberTypeData> GetCommonTree(Type type1, Type type2)
+        {
+            var tree1 = BuildTree(type1);
+            var tree2 = BuildTree(type2);
+            var common = GetCommonTree(tree1, tree2);
+            return common;
+        }
+
         public List<MemberTypeData> BuildTree(Type objectType)
         {
             List<MemberTypeData> tree = new List<MemberTypeData>();

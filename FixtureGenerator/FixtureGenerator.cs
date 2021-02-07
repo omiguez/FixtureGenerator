@@ -1,4 +1,6 @@
-﻿using FixtureGenerator.SampleClasses;
+﻿using FixtureGenerator.CommonTreeGeneration;
+using FixtureGenerator.SampleClasses;
+using FixtureGenerator.SampleClasses.SimilarClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,10 +12,54 @@ namespace FixtureGenerator
     public class FixtureGenerator
     {
         private Random rand = new Random(32); // seed
+        private const int GeneratedArrayLength = 5;
         public void DoStuff()
         {
             ////GenerateFixture(typeof(ClassWithCollections));
-            GenerateFixture(typeof(SampleModelClass));
+            ////GenerateFixture(typeof(SampleModelClass), null);
+            var commonTree = new CommonTreeBuilder().GetCommonTree(typeof(ModelActualizado), typeof(ModelPresentation));
+            commonTree = PopulateCommonMemberTree(commonTree);
+        }
+
+        public List<MemberTypeData> PopulateCommonMemberTree(List<MemberTypeData> commonMemberTree)
+        {
+            foreach (MemberTypeData member in commonMemberTree)
+            {
+                SetValueForMemberTypeData(member);
+            }
+
+            return commonMemberTree;
+        }
+
+        private void SetValueForMemberTypeData(MemberTypeData member)
+        {
+            if (member.KeyType != null)
+            {
+                // dictionary;
+                var value = new Dictionary<object, object>();
+                for (int i = 0; i < GeneratedArrayLength; i++)
+                {
+                    value.Add(GenerateValue(member.KeyType.MemberType), GenerateValue(member.ItemType.MemberType));
+                }
+                member.Value = value;
+            }
+            else if (member.Value != null)
+            {
+                var value = new List<object>();
+                for (int i = 0; i < GeneratedArrayLength; i++)
+                {
+                    value.Add(GenerateValue(member.ItemType.MemberType));
+                }
+                member.Value = value;
+            }
+            else if (member.Children.Any())
+            {
+                member.Children.ForEach(child => SetValueForMemberTypeData(child));
+            }
+            else
+            {
+                member.Value = GenerateValue(member.MemberType);
+            }            
         }
 
         public object GenerateFixture(Type objectType)
@@ -25,7 +71,7 @@ namespace FixtureGenerator
             Console.WriteLine(GenerateRandomString(30));
             foreach (PropertyInfo member in fixtureType.GetProperties())
             {
-                Type memberType = member.PropertyType;
+                Type memberType = member.PropertyType;                
                 object generatedValue = GenerateValue(memberType);                            
                 member.SetValue(newFixture, generatedValue);
             }
@@ -105,7 +151,7 @@ namespace FixtureGenerator
             if (typeArguments.Length == 1)
             {
                 IList newCollection = (IList)Activator.CreateInstance(memberType);
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < GeneratedArrayLength; i++)
                 {
                     newCollection.Add(GenerateValue(typeArguments[0]));
                 }
@@ -123,7 +169,7 @@ namespace FixtureGenerator
             if (typeArguments.Length == 2)
             {
                 IDictionary newCollection = (IDictionary)Activator.CreateInstance(memberType);
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < GeneratedArrayLength; i++)
                 {
                     var key = GenerateValue(typeArguments[0]);
                     var value = GenerateValue(typeArguments[1]);

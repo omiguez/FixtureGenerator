@@ -8,8 +8,8 @@ namespace FixtureGenerator
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            //new FixtureGenerator().DoStuff();
-            new CommonTreeBuilder().TryBuildTree();
+            new FixtureGenerator().DoStuff();
+            //new CommonTreeBuilder().TryBuildTree();
             Console.WriteLine("We done!");
         }
     }
