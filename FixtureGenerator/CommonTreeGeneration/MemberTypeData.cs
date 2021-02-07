@@ -14,6 +14,10 @@ namespace FixtureGenerator.CommonTreeGeneration
 
         public List<MemberTypeData> Children { get; set; }
 
+        public MemberTypeData KeyType { get; set; } // dictionaries
+
+        public MemberTypeData ItemType { get; set; } // collections (including dictionaries)
+
         public MemberTypeData(Type memberType, string memberName)
         {
             MemberType = memberType;

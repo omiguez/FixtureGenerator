@@ -137,7 +137,7 @@ namespace FixtureGenerator
             }
         }
 
-        private bool DoesItImplementInterface(Type @type, Type @interface)
+        public static bool DoesItImplementInterface(Type @type, Type @interface)
         {
             return @type.GetInterfaces().Contains(@interface);
         }
