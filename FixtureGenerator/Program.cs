@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FixtureGenerator.CommonTreeGeneration;
+using System;
 
 namespace FixtureGenerator
 {
@@ -7,7 +8,8 @@ namespace FixtureGenerator
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            new FixtureGenerator().DoStuff();
+            //new FixtureGenerator().DoStuff();
+            new CommonTreeBuilder().TryBuildTree();
             Console.WriteLine("We done!");
         }
     }
